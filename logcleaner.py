@@ -62,14 +62,19 @@ def usage():
 # returns A new w/utmp binary file
 def scrubFile(filePath):
   newUtmp = ""
-  with open(filePath, "rb") as f:
-    bytes = f.read(UTMP_STRUCT_SIZE)
-    while bytes != "":
-      data = struct.unpack("hi32s4s32s256shhiii36x", bytes)
-      if cut(data[4]) != usernameToRemove and cut(data[5]) != hostAddressToRemove:
-newUtmp += bytes
+  try:
+    with open(filePath, "rb") as f:
       bytes = f.read(UTMP_STRUCT_SIZE)
-  f.close()
+      while bytes != "":
+        data = struct.unpack("hi32s4s32s256shhiii36x", bytes)
+        if cut(data[4]) != usernameToRemove and cut(data[5]) != hostAddressToRemove:
+          newUtmp += bytes
+        bytes = f.read(UTMP_STRUCT_SIZE)
+    f.close()
+  except IOError:
+    print "file not found, skip"
+  else:
+    exit(0)
   return newUtmp
 
 # This method is specific to the lastlog file binary format, hence the
